@@ -1,12 +1,23 @@
-import { createSlice } from '@reduxjs/toolkit';
-import cartItems from '../../cartItems';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+const url = 'https://course-api.com/react-useReducer-cart-project';
 
 const initialState = {
-  cartItems: cartItems,
-  amount: 4,
+  cartItems: [],
+  amount: 0,
   total: 0,
   isLoading: true,
 };
+
+export const getCartItems = createAsyncThunk('cart/getCartItems', async () => {
+  try {
+    const resp = await axios.get(url);
+    return resp.data;
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 const cartSlice = createSlice({
   name: "cart",
@@ -37,6 +48,20 @@ const cartSlice = createSlice({
       });
       state.amount = amount;
       state.total = total;
+    },
+  },
+  // extraReducers is a callback function that allows us to handle the pending, fulfilled, and rejected states of our async thunk
+  extraReducers: {
+    [getCartItems.pending]: (state, action) => {
+      state.isLoading = true;
+    },
+    [getCartItems.fulfilled]: (state, action) => {
+      console.log(action)
+      state.isLoading = false;
+      state.cartItems = action.payload;
+    },
+    [getCartItems.rejected]: (state, action) => {
+      state.isLoading = false;
     },
   },
 });
